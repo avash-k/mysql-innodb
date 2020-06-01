@@ -1,5 +1,5 @@
 ### RUN THE IBM-CLOUD SCRIPT ###
-curl -sL https://ibm.biz/idt-installer | bash
+curl -fsSL https://clis.cloud.ibm.com/install/linux | sh 
 
 ### LOGIN TO IBM CLOUD ###
 ibmcloud login -a cloud.ibm.com -r <region-name> -g <resource-group> --sso
