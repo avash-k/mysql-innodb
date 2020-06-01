@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-router
+  namespace: mysql
+  labels:
+    app: mysql-router
+spec:
+  ports:
+    - port: 6446
+      targetPort: 6446
+      protocol: TCP
+      name: 3306-tcp
+    - port: 6447
+      targetPort: 6447
+      protocol: TCP
+      name: 3307-tcp
+  selector:
+    app: mysql-router
+  type: LoadBalancer
+

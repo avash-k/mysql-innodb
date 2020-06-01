@@ -1,0 +1,33 @@
+apiVersion: mysql.oracle.com/v1alpha1
+kind: Cluster
+metadata:
+  name: mysql-innodb
+  namespace: mysql
+spec:
+  members: 3
+  rootPasswordSecret: 
+    name: root-password
+  version: 8.0.17           
+  config:                                
+    name: innodb-mycnf
+  volumeClaimTemplate:
+    metadata:
+      name: pvcdata
+    spec:
+      storageClassName: mysql-sc
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+  backupVolumeClaimTemplate:
+    metadata:
+      name: pvcbackup
+    spec:
+      storageClassName: mysql-sc
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+

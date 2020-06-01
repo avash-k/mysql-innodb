@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mysql-router
+  namespace: mysql
+  labels:
+    app: mysql-router
+spec:
+  replicas: 3
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql-router
+    spec:
+      containers:
+      - name: mysqlrouter
+        image: mysql/mysql-router:8.0.19-0.9-router 
+        env:
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: root-password
+              key: password
+        - name: MYSQL_USER
+          value: root
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_HOST
+          value: mysql-innodb-0.mysql-innodb
+        - name: MYSQL_INNODB_NUM_MEMBERS
+          value: "3"
+        command:
+        - "/bin/bash"
+        - "-cx"
+        - "exec /run.sh mysqlrouter"
+        ports:
+        - containerPort: 6446
+          containerPort: 6447
+
