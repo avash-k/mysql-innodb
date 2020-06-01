@@ -4,16 +4,14 @@ kind: ServiceAccount
 metadata:
   name: mysql-operator
   namespace: {{ if and (.Values.operator.global) (eq .Values.operator.namespace "mysql-operator") }}mysql-operator{{ else }}{{ .Values.operator.namespace}}{{ end }}
-imagePullSecrets:
-- name: icr-secret
+
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: mysql-agent
   namespace: {{ if and (.Values.operator.global) (eq .Values.operator.namespace "mysql-operator") }}default{{ else }}{{ .Values.operator.namespace}}{{ end }}
-imagePullSecrets:
-- name: icr-secret
+
 ---
 {{- if .Values.rbac.enabled -}}
 apiVersion: rbac.authorization.k8s.io/v1beta1
