@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: mysqlrouter
-        image: mysql/mysql-router:8.0.19-0.9-router 
+        image: avashkumar/mysql-router:8.0.19 
         env:
         - name: MYSQL_PASSWORD
           valueFrom:
