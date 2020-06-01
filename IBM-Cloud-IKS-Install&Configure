@@ -1,0 +1,25 @@
+### RUN THE IBM-CLOUD SCRIPT ###
+curl -sL https://ibm.biz/idt-installer | bash
+
+### LOGIN TO IBM CLOUD ###
+ibmcloud login -a cloud.ibm.com -r <region-name> -g <resource-group> --sso
+
+### SET THE KUBERNETES CONTEXT TO YOUR CLUSTER ###
+(a) ibmcloud ks cluster config --cluster <cluster-ID>
+(b) Add the ${KUBECONFIG} environment variable to your .bash_profile
+    export /home/<user-name>/.bluemix/plugins/container-service/clusters/<cluster-name>-<cluster-id>/<kube-config-file>
+    (*** If command (a) fails add the ${KUBECONFIG} env. variable & fire command (a) again ***)
+
+### VERIFY YOU CAN CONNECT TO YOUR CLUSTER THROUGH "KUBECTL" ###
+kubectl config current-context
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
