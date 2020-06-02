@@ -1,0 +1,39 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mysqlbackup
+  namespace: mysql
+spec:
+  schedule: "35 04 * * *"   ### give schedule time acc.
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: mysqlbackup
+            image: bitnami/kubectl
+            env:
+            - name: backup-user
+              valueFrom:
+                secretKeyRef:
+                  name: backup-user
+                  key: user
+            - name: backup-user-password
+              valueFrom:
+                secretKeyRef:
+                  name: backup-user-password
+                  key: password
+            - name: backup-dir
+              value: "/var/lib/mysql-agent/$Datetime"
+            - name: encrypt-password
+              valueFrom:
+                secretKeyRef:
+                  name: encrypt-password
+                  key: password
+            
+            command:
+            - /bin/sh
+            - -c
+            - kubectl exec -it mysql-innodb-0 -n mysql -- command mysqlbackup --user=$(backup-user) --read-threads=3 --process-threads=6 --write-threads=3 --password=$(backup-user-password) --host=localhost --port=3306 --protocol=TCP --backup-dir=$(backup-dir) --encrypt-password=$(encrypt-password) --with-timestamp backup-and-apply-log --ssl-mode=DISABLED
+          restartPolicy: OnFailure
+
