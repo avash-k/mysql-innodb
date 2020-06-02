@@ -34,22 +34,26 @@ M) Check if any storage class is present else create one using this link https:/
 
 N) Create the Innodb Cluster
    < kubectl create -f innodb-cluster.yaml >
+   
+O) Create MySQL Router Deployment & Service
+   < kubectl create -f deploy-mysql-router.yaml >
+   < kubectl create -f svc-mysql-router.yaml >
 
-O) Make the SSL Certificates same in all Pods
+P) Make the SSL Certificates same in all Pods
    < kubectl exec -it mysql-innodb-0 -n mysql bash >
    < yum -y install tar >   ### do for all Pods each time they are restarted to copy to/from Pod & Local ### 
    < kubectl cp mysql/mysql-innodb-0:/var/lib/mysql/all-ssl-certs > 
    < kubectl cp ./all-ssl-certs mysql/mysql-innodb-1,2 >
    < kubectl rollout restart mysql-innodb -n mysql >
    
-P) Check the State of the Cluster
+Q) Check the State of the Cluster
    < kubectl exec -it mysql-innodb-0 -n mysql bash >
    < mysqlsh -uroot -pfoobar >
    < dba.getCluster().status() >
 
-Q) Enter the Master Pod & Follow the Steps in File "Mysql-innodb-encryption" for Setting Up Backup User & Encryption Key
+R) Enter the Master Pod & Follow the Steps in File "Mysql-innodb-encryption" for Setting Up Backup User & Encryption Key
 
-R) Run the Backup Script on the slave
+S) Run the Backup Script on the slave
    < kubectl create -f cron-rb.yaml >
    < kubectl create -f cron-role.yaml >
    < kubectl create -f cron-backup.yaml >
