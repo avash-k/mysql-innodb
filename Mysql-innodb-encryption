@@ -1,0 +1,79 @@
+mysql -uroot -pfoobar
+
+#####  IF THE PLUGIN AND UDFS ARE USED ON A MASTER REPLICATION SERVER, INSTALL THEM ON ALL SLAVE SERVERS AS WELL TO AVOID REPLICATION ISSUES #####
+INSTALL PLUGIN keyring_file SONAME 'keyring_file.so';  
+( this generates a keyring file should be same for all mysql-innodb members else group replication will fail subsequently, hence this is pre-defined in '/etc/my.cnf' file  )
+               
+INSTALL PLUGIN keyring_udf SONAME 'keyring_udf.so';
+( this should be present in all the nodes to use the encryption Key while backup/restore operation, hence this is pre-defined in '/etc/my.cnf' file, *** if present only in master then backup/restore operation fails once master changes *** )
+
+ 
+SELECT PLUGIN_NAME, PLUGIN_STATUS FROM INFORMATION_SCHEMA.PLUGINS WHERE PLUGIN_NAME LIKE 'keyring%'; ( check this in all the members to ensure that required 'keyring-plugins' are available )
+
+##### Creating User Defined Functions With Plugin 'keyring_udf.so' to  #####  ( *** Check how to see the functions/in which Schema they are stored? *** )
+CREATE FUNCTION keyring_key_generate RETURNS INTEGER SONAME 'keyring_udf.so';
+CREATE FUNCTION keyring_key_fetch RETURNS STRING SONAME 'keyring_udf.so';
+CREATE FUNCTION keyring_key_length_fetch RETURNS INTEGER SONAME 'keyring_udf.so';
+CREATE FUNCTION keyring_key_type_fetch RETURNS STRING SONAME 'keyring_udf.so';
+CREATE FUNCTION keyring_key_store RETURNS INTEGER SONAME 'keyring_udf.so';
+CREATE FUNCTION keyring_key_remove RETURNS INTEGER SONAME 'keyring_udf.so';
+
+
+##### For Generating Key #####  ( show variables like "<variable-name>"; OR select @<variable-name>; )
+SET block_encryption_mode = 'aes-256-cbc';
+SET @key_str = SHA2('password',512);   ##### ( here 'password' is the value for --encrypt-password parameter to be used later while taking backup )
+SET @init_vector = RANDOM_BYTES(16);
+SET @crypt_str = AES_ENCRYPT('text',@key_str,@init_vector);
+SELECT AES_DECRYPT(@crypt_str,@key_str,@init_vector);
+
+##### Generate a key with name 'MyKey' #####
+SELECT keyring_key_generate('MyKey', 'AES', 256);  ( This function requires keyring_udf plugin to be pre-installed )
+
+#### CHECK THE KEY GENERATED ####
+SELECT keyring_key_type_fetch('MyKey');
+SELECT keyring_key_length_fetch('MyKey');
+
+use MYDB;
+
+##### ALTER A TABLE TO USE ENCRYPTION #####
+alter table Persons ENCRYPTION='Y' TABLESPACE=innodb_file_per_table;
+
+##### CHECK IF ENCRYPTION IS ENABLED FOR ALL TABLES IN A DATABASE #####
+SELECT TABLE_SCHEMA, TABLE_NAME, ENGINE, CREATE_OPTIONS FROM information_schema.TABLES WHERE TABLE_SCHEMA ='MYDB';
+
+##### CHECK IF ENCRYPTION IS ENABLED FOR A TABLE #####
+SELECT TABLE_SCHEMA, TABLE_NAME, ENGINE, CREATE_OPTIONS FROM information_schema.TABLES WHERE TABLE_SCHEMA ='MYDB' and TABLE_NAME ='Persons';
+
+CREATE USER 'mysqlbackup'@'localhost' IDENTIFIED BY 'password';
+GRANT SELECT ON *.* TO 'mysqlbackup'@'localhost';
+GRANT BACKUP_ADMIN ON *.* TO 'mysqlbackup'@'localhost'; 
+GRANT SELECT ON performance_schema.variables_info TO 'mysqlbackup'@'localhost'; 
+GRANT SELECT ON performance_schema.log_status TO 'mysqlbackup'@'localhost'; 
+GRANT RELOAD ON *.* TO 'mysqlbackup'@'localhost';
+GRANT CREATE, INSERT, DROP, UPDATE ON mysql.backup_progress TO 'mysqlbackup'@'localhost';
+GRANT CREATE, INSERT, DROP, UPDATE, SELECT, ALTER ON mysql.backup_history TO 'mysqlbackup'@'localhost';
+GRANT REPLICATION CLIENT ON *.* TO 'mysqlbackup'@'localhost';
+GRANT SUPER ON *.* TO 'mysqlbackup'@'localhost';
+GRANT PROCESS ON *.* TO 'mysqlbackup'@'localhost';
+GRANT SELECT ON performance_schema.replication_group_members TO 'mysqlbackup'@'localhost'; 
+
+ALTER USER 'mysqlbackup'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+
+
+CREATE USER 'mysqlbackup'@'%' IDENTIFIED BY 'password';
+GRANT SELECT ON *.* TO 'mysqlbackup'@'%'; 
+GRANT BACKUP_ADMIN ON *.* TO 'mysqlbackup'@'%'; 
+GRANT SELECT ON performance_schema.variables_info TO 'mysqlbackup'@'%';
+GRANT SELECT ON performance_schema.log_status TO 'mysqlbackup'@'%';
+GRANT RELOAD ON *.* TO 'mysqlbackup'@'%';
+GRANT CREATE, INSERT, DROP, UPDATE ON mysql.backup_progress TO 'mysqlbackup'@'%';
+GRANT CREATE, INSERT, DROP, UPDATE, SELECT, ALTER ON mysql.backup_history TO 'mysqlbackup'@'%';
+GRANT REPLICATION CLIENT ON *.* TO 'mysqlbackup'@'%';
+GRANT SUPER ON *.* TO 'mysqlbackup'@'%';
+GRANT PROCESS ON *.* TO 'mysqlbackup'@'%';
+GRANT SELECT ON performance_schema.replication_group_members TO 'mysqlbackup'@'%'; 
+
+
+ALTER USER 'mysqlbackup'@'%' IDENTIFIED WITH mysql_native_password BY 'password';
+
+
