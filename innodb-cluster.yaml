@@ -7,7 +7,7 @@ spec:
   members: 3
   rootPasswordSecret: 
     name: root-password
-  version: 8.0.13          
+  version: 8.0.13 ### this value should be same as the image tag present in the repository ###          
   config:                                
     name: innodb-mycnf
   volumeClaimTemplate:
