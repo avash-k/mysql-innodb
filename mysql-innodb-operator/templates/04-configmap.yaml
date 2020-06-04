@@ -10,6 +10,6 @@ metadata:
 data:
   mysql-operator-config.yaml: |
     images:
-      mysqlServer: avashkumar/myprivaterepo   ### use avashkumar/mysql-innodb & tag=8.0.13 in Cluster.yaml for demo ###
+      mysqlServer: avashkumar/mysql-innodb   ### use tag=8.0.13 in Cluster.yaml ###
       mysqlAgent: avashkumar/mysql-agent
 
